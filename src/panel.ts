@@ -9,6 +9,19 @@ import { createSystem, UIKitMLAsset, VisibilityState } from '@iwsdk/core';
 
 export class PanelSystem extends createSystem({}) {
   init(): void {
+    // Flat-page "Enter VR" button (index.html), visible on every screen while not immersive.
+    const domButton = document.getElementById('enter-vr');
+    if (domButton != null && this.world.xrEnabled) {
+      const launch = () => this.world.launchXR();
+      domButton.addEventListener('click', launch);
+      this.cleanupFuncs.push(
+        () => domButton.removeEventListener('click', launch),
+        this.world.visibilityState.subscribe((state) => {
+          domButton.hidden = state !== VisibilityState.NonImmersive;
+        }),
+      );
+    }
+
     const panel = this.world.getSceneObject<UIKitMLAsset>('welcome-panel');
     const xrButton = panel?.getElementById('xr-button');
     const exitButton = panel?.getElementById('exit-button');
