@@ -1,0 +1,132 @@
+<!--
+  Home (T-05). Placed at scale 0.1, so 10 units = 1 cm: the panel is 60 cm wide.
+  Streak count and the last seven days (filled dot = daily solved that day,
+  hollow = not), Daily and Practice as large buttons, then Settings.
+  Labels are rewritten by src/flow/flow-system.ts.
+-->
+<style>
+  .root {
+    flex-direction: column;
+    width: 700px;
+    gap: 18px;
+    padding-top: 26px;
+    padding-bottom: 26px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .streak {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .big {
+    color: #1c1d20;
+    font-size: 64px;
+    font-weight: 700;
+  }
+
+  .big:dark {
+    color: #ffd29a;
+  }
+
+  .small {
+    color: #3a3b40;
+    font-size: 30px;
+  }
+
+  .small:dark {
+    color: #c9d6ea;
+  }
+
+  .dots {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    border-width: 4px;
+    border-color: #8c9bb5;
+  }
+
+  .main-btn {
+    height: 110px;
+    justify-content: flex-start;
+    gap: 16px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .main-label {
+    font-size: 40px;
+    font-weight: 700;
+  }
+
+  .settings {
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .set-btn {
+    flex-grow: 1;
+    height: 80px;
+    justify-content: center;
+    gap: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .set-label {
+    font-size: 26px;
+  }
+</style>
+<Panel class="root">
+  <div class="top">
+    <div class="streak">
+      <span id="streak-count" class="big">0</span>
+      <span id="streak-label" class="small">day streak</span>
+    </div>
+    <div class="dots">
+      <div id="dot-0" class="dot"></div>
+      <div id="dot-1" class="dot"></div>
+      <div id="dot-2" class="dot"></div>
+      <div id="dot-3" class="dot"></div>
+      <div id="dot-4" class="dot"></div>
+      <div id="dot-5" class="dot"></div>
+      <div id="dot-6" class="dot"></div>
+    </div>
+  </div>
+  <Button id="btn-daily" class="main-btn">
+    <ButtonIcon><CalendarDays></CalendarDays></ButtonIcon>
+    <ButtonLabel id="label-daily" class="main-label">Daily puzzle</ButtonLabel>
+  </Button>
+  <Button id="btn-practice" class="main-btn">
+    <ButtonIcon><Dumbbell></Dumbbell></ButtonIcon>
+    <ButtonLabel id="label-practice" class="main-label">Practice: level 1</ButtonLabel>
+  </Button>
+  <div class="settings">
+    <Button id="btn-sound" class="set-btn">
+      <ButtonIcon><Volume2></Volume2></ButtonIcon>
+      <ButtonLabel id="label-sound" class="set-label">Sound on</ButtonLabel>
+    </Button>
+    <Button id="btn-contrast" class="set-btn">
+      <ButtonIcon><Contrast></Contrast></ButtonIcon>
+      <ButtonLabel id="label-contrast" class="set-label">Contrast off</ButtonLabel>
+    </Button>
+    <Button id="btn-tutorial" class="set-btn">
+      <ButtonIcon><GraduationCap></GraduationCap></ButtonIcon>
+      <ButtonLabel class="set-label">Tutorial</ButtonLabel>
+    </Button>
+  </div>
+</Panel>

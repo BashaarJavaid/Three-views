@@ -1,0 +1,142 @@
+<!--
+  Result card (T-05). Sits below the solved box where the control bar was,
+  tilted to face the seated eye. Placed at scale 0.1, so 10 units = 1 cm:
+  90 x 20 cm, about 0.85 m from the eye, which keeps it between the box's
+  lowest corner (-25 deg) and the glasses' lower edge (-43 deg).
+  Green "Solved" block | time, blocks / par, lean mark, streak or level line | Next, Home.
+  Values are written by src/flow/flow-system.ts.
+-->
+<style>
+  .root {
+    flex-direction: row;
+    width: 900px;
+    height: 200px;
+    gap: 20px;
+    padding-right: 16px;
+    align-items: center;
+  }
+
+  .solved {
+    width: 200px;
+    height: 200px;
+    align-items: center;
+    justify-content: center;
+    background-color: #2f7d4f;
+    border-top-left-radius: 24px;
+    border-bottom-left-radius: 24px;
+  }
+
+  .title {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: 700;
+  }
+
+  .middle {
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 10px;
+  }
+
+  .stats {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 34px;
+  }
+
+  .stat {
+    flex-direction: column;
+  }
+
+  .stat-label {
+    color: #3a3b40;
+    font-size: 24px;
+  }
+
+  .stat-label:dark {
+    color: #c9d6ea;
+  }
+
+  .stat-value {
+    color: #1c1d20;
+    font-size: 48px;
+    font-weight: 700;
+  }
+
+  .stat-value:dark {
+    color: #f2f6ff;
+  }
+
+  .lean {
+    color: #1c1d20;
+    font-size: 30px;
+    font-weight: 700;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border-width: 3px;
+    border-color: #5fd08a;
+    border-radius: 12px;
+    margin-bottom: 6px;
+  }
+
+  .lean:dark {
+    color: #5fd08a;
+  }
+
+  .line {
+    color: #1c1d20;
+    font-size: 34px;
+  }
+
+  .line:dark {
+    color: #ffd29a;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 12px;
+    width: 230px;
+  }
+
+  .btn {
+    height: 78px;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-label {
+    font-size: 34px;
+    font-weight: 700;
+  }
+</style>
+<Panel class="root">
+  <div class="solved">
+    <span class="title">Solved</span>
+  </div>
+  <div class="middle">
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">Time</span>
+        <span id="result-time" class="stat-value">0:00</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Blocks / par</span>
+        <span id="result-blocks" class="stat-value">0 / 0</span>
+      </div>
+      <span id="result-lean" class="lean">Lean</span>
+    </div>
+    <span id="result-change" class="line">Streak: 1 day</span>
+  </div>
+  <div class="buttons">
+    <Button id="btn-next" class="btn">
+      <ButtonIcon><ArrowRight></ArrowRight></ButtonIcon>
+      <ButtonLabel class="btn-label">Next</ButtonLabel>
+    </Button>
+    <Button id="btn-result-home" class="btn">
+      <ButtonIcon><House></House></ButtonIcon>
+      <ButtonLabel class="btn-label">Home</ButtonLabel>
+    </Button>
+  </div>
+</Panel>

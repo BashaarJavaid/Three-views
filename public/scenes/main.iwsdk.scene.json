@@ -1,0 +1,277 @@
+{
+  "authoring": {
+    "views": [
+      {
+        "fov": 60,
+        "id": "hero",
+        "position": [
+          0.12,
+          1.25,
+          0.25
+        ],
+        "projection": "perspective",
+        "role": "hero",
+        "target": [
+          0.14,
+          1.08,
+          -1
+        ]
+      }
+    ]
+  },
+  "components": {
+    "com.iwsdk.components.DomeGradient": {
+      "dither": true,
+      "equator": [
+        0.075,
+        0.085,
+        0.13,
+        1
+      ],
+      "ground": [
+        0.018,
+        0.02,
+        0.03,
+        1
+      ],
+      "intensity": 1,
+      "sky": [
+        0.035,
+        0.045,
+        0.085,
+        1
+      ]
+    },
+    "com.iwsdk.components.IBLGradient": {
+      "equator": [
+        0.16,
+        0.18,
+        0.24,
+        1
+      ],
+      "ground": [
+        0.05,
+        0.05,
+        0.07,
+        1
+      ],
+      "intensity": 0.6,
+      "sky": [
+        0.3,
+        0.34,
+        0.45,
+        1
+      ]
+    }
+  },
+  "environment": {
+    "exposure": 1,
+    "shadows": false,
+    "toneMapping": "aces"
+  },
+  "nodes": [
+    {
+      "content": {
+        "asset": "glass-box",
+        "type": "asset"
+      },
+      "id": "glass-box",
+      "name": "glass-box",
+      "transform": {
+        "position": [
+          0,
+          1.1,
+          -1
+        ],
+        "rotationDeg": [
+          20,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "components": {
+        "RayInteractable": {}
+      },
+      "content": {
+        "asset": "welcome-panel",
+        "type": "asset"
+      },
+      "id": "welcome-panel",
+      "name": "Welcome Panel",
+      "transform": {
+        "position": [
+          0,
+          1.42,
+          -0.8
+        ],
+        "scale": 0.07
+      }
+    },
+    {
+      "components": {
+        "RayInteractable": {}
+      },
+      "content": {
+        "asset": "controls-panel",
+        "type": "asset"
+      },
+      "id": "play-controls",
+      "name": "Play Controls",
+      "transform": {
+        "position": [
+          0,
+          0.74,
+          -0.8
+        ],
+        "rotationDeg": [
+          -30,
+          0,
+          0
+        ],
+        "scale": 0.1
+      }
+    },
+    {
+      "content": {
+        "asset": "controls-panel",
+        "type": "asset"
+      },
+      "id": "play-readout",
+      "name": "Play Readout",
+      "transform": {
+        "position": [
+          0,
+          1.45,
+          -1.02
+        ],
+        "rotationDeg": [
+          10,
+          0,
+          0
+        ],
+        "scale": 0.1
+      }
+    },
+    {
+      "components": {
+        "RayInteractable": {}
+      },
+      "content": {
+        "asset": "home-panel",
+        "type": "asset"
+      },
+      "id": "home-panel",
+      "name": "Home Panel",
+      "transform": {
+        "position": [
+          0,
+          1.0,
+          -0.78
+        ],
+        "scale": 0.1
+      }
+    },
+    {
+      "components": {
+        "RayInteractable": {}
+      },
+      "content": {
+        "asset": "result-panel",
+        "type": "asset"
+      },
+      "id": "result-panel",
+      "name": "Result Panel",
+      "transform": {
+        "position": [
+          0,
+          0.725,
+          -0.705
+        ],
+        "rotationDeg": [
+          -34,
+          0,
+          0
+        ],
+        "scale": 0.1
+      }
+    },
+    {
+      "components": {
+        "RayInteractable": {}
+      },
+      "content": {
+        "asset": "tutorial-panel",
+        "type": "asset"
+      },
+      "id": "tutorial-panel",
+      "name": "Tutorial Panel",
+      "transform": {
+        "position": [
+          0,
+          1.5,
+          -1.02
+        ],
+        "rotationDeg": [
+          10,
+          0,
+          0
+        ],
+        "scale": 0.1
+      }
+    },
+    {
+      "components": {
+        "DirectionalLight": {
+          "castShadow": false,
+          "color": [
+            1,
+            0.95,
+            0.88,
+            1
+          ],
+          "intensity": 1.6
+        }
+      },
+      "id": "key-light",
+      "name": "Key Light",
+      "transform": {
+        "position": [
+          -1.5,
+          3,
+          1
+        ],
+        "rotationDeg": [
+          -55,
+          -30,
+          0
+        ]
+      }
+    },
+    {
+      "components": {
+        "HemisphereLight": {
+          "groundColor": [
+            0.12,
+            0.12,
+            0.16,
+            1
+          ],
+          "intensity": 0.8,
+          "skyColor": [
+            0.62,
+            0.68,
+            0.86,
+            1
+          ]
+        }
+      },
+      "id": "fill-light",
+      "name": "Fill Light"
+    }
+  ],
+  "resources": {},
+  "units": "meters",
+  "version": "iwsdk.scene.v1"
+}

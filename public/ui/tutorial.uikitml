@@ -1,0 +1,48 @@
+<!--
+  Tutorial line (T-06). One sentence per step, written by src/tutorial/tutorial-system.ts,
+  plus Skip below its right end, so Skip clears the box's top-right corner.
+  Sits where the play readout sits (the readout is hidden during the tutorial),
+  just above the box. Placed at scale 0.1, so 10 units = 1 cm. The line has a
+  fixed width so Skip never moves between steps; Skip is 16 x 7 cm.
+-->
+<style>
+  .root {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 20px;
+    padding-right: 12px;
+  }
+
+  .line {
+    color: #1c1d20;
+    width: 790px;
+    font-size: 50px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .line:dark {
+    color: #ffd29a;
+  }
+
+  .skip {
+    width: 160px;
+    height: 70px;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .skip-label {
+    font-size: 28px;
+  }
+</style>
+<Panel class="root">
+  <span id="tut-line" class="line">Tap to add a block.</span>
+  <Button id="btn-skip" class="skip">
+    <ButtonIcon><SkipForward></SkipForward></ButtonIcon>
+    <ButtonLabel class="skip-label">Skip</ButtonLabel>
+  </Button>
+</Panel>

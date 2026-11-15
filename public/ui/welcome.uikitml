@@ -1,0 +1,73 @@
+<!--
+  Landing panel: name, one line, Enter VR (flat page) / Exit (in XR).
+  Panel, Button, ButtonIcon and ButtonLabel come from the Horizon kit;
+  RectangleGoggles and LogOut are bundled Lucide icons. :dark styles apply
+  because iwsdk.config.json prefers the dark scheme.
+-->
+<style>
+  .panel-root {
+    flex-direction: column;
+    width: 400px;
+  }
+
+  .panel-content {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 26px;
+    padding-bottom: 18px;
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+
+  .heading {
+    color: #1c1d20;
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .heading:dark {
+    color: #f2f6ff;
+  }
+
+  .body {
+    color: #3a3b40;
+    font-size: 30px;
+    line-height: 1.3;
+  }
+
+  .body:dark {
+    color: #c9d6ea;
+  }
+
+  .button {
+    height: 72px;
+    justify-content: center;
+    margin-left: 26px;
+    margin-right: 26px;
+    margin-bottom: 26px;
+  }
+
+  .button-label {
+    font-size: 26px;
+    transform-translate-y: 1px;
+  }
+</style>
+<Panel class="panel-root">
+  <div class="panel-content">
+    <div class="heading">Three Views</div>
+    <div class="body">Build the shape that casts all three shadows.</div>
+  </div>
+  <Button id="xr-button" class="button">
+    <ButtonIcon>
+      <RectangleGoggles></RectangleGoggles>
+    </ButtonIcon>
+    <ButtonLabel class="button-label">Enter VR</ButtonLabel>
+  </Button>
+  <Button id="exit-button" class="button" style="display: none">
+    <ButtonIcon>
+      <LogOut></LogOut>
+    </ButtonIcon>
+    <ButtonLabel class="button-label">Exit VR</ButtonLabel>
+  </Button>
+</Panel>

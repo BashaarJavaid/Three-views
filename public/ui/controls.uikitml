@@ -1,0 +1,94 @@
+<!--
+  Play controls (T-03). One file, two scene instances:
+  "play-controls" shows #bar (the control bar below the box),
+  "play-readout" shows #readout (block count and time above the box).
+  Placed at scale 0.1, so 10 units = 1 cm: buttons are 9.2 cm wide with 2 cm gaps.
+  The active mode button turns from a pill into a lit rounded square and its label
+  reads "Adding"/"Removing" (shape and label, not only colour).
+-->
+<style>
+  .root {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bar {
+    flex-direction: row;
+    gap: 20px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .btn {
+    width: 92px;
+    height: 84px;
+    border-radius: 42px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+
+  .label {
+    font-size: 14px;
+  }
+
+  .readout {
+    flex-direction: row;
+    gap: 36px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .readout-text {
+    color: #1c1d20;
+    font-size: 30px;
+    font-weight: 700;
+  }
+
+  .readout-text:dark {
+    color: #f2f6ff;
+  }
+</style>
+<Panel class="root">
+  <div id="bar" class="bar">
+    <Button id="btn-add" class="btn">
+      <ButtonIcon><Plus></Plus></ButtonIcon>
+      <ButtonLabel id="label-add" class="label">Add</ButtonLabel>
+    </Button>
+    <Button id="btn-remove" class="btn">
+      <ButtonIcon><Minus></Minus></ButtonIcon>
+      <ButtonLabel id="label-remove" class="label">Remove</ButtonLabel>
+    </Button>
+    <Button id="btn-left" class="btn">
+      <ButtonIcon><RotateCcw></RotateCcw></ButtonIcon>
+      <ButtonLabel class="label">Turn left</ButtonLabel>
+    </Button>
+    <Button id="btn-right" class="btn">
+      <ButtonIcon><RotateCw></RotateCw></ButtonIcon>
+      <ButtonLabel class="label">Turn right</ButtonLabel>
+    </Button>
+    <Button id="btn-undo" class="btn">
+      <ButtonIcon><Undo2></Undo2></ButtonIcon>
+      <ButtonLabel class="label">Undo</ButtonLabel>
+    </Button>
+    <Button id="btn-clear" class="btn">
+      <ButtonIcon><Trash2></Trash2></ButtonIcon>
+      <ButtonLabel id="label-clear" class="label">Clear</ButtonLabel>
+    </Button>
+    <Button id="btn-home" class="btn">
+      <ButtonIcon><House></House></ButtonIcon>
+      <ButtonLabel class="label">Home</ButtonLabel>
+    </Button>
+  </div>
+  <div id="readout" class="readout">
+    <span id="readout-blocks" class="readout-text">0 blocks</span>
+    <span id="readout-time" class="readout-text">0:00</span>
+  </div>
+</Panel>
