@@ -2,7 +2,7 @@
 
 Run 2026-11-15 by the T-07 agent. **All of this is desktop data.** It comes from the IWSDK browser emulator (IWER) on a MacBook, with the Meta Quest 3 and Meta VR Glasses device profiles. None of it was measured on a Quest or on glasses. Frame times on a laptop do not show that the app holds 60 fps on a headset. The agent cannot hear audio, so sound results rest on Web Audio node starts and the AudioContext state.
 
-Screenshots are in `/private/tmp/claude-501/-Users-bashaarjavaid-Projects-three-views/3175fc5f-e9de-4772-a1d8-501f42b38806/scratchpad/t07/`. That is session scratch space; copy anything you want to keep.
+Screenshots are in `scratchpad/t07/`. That is session scratch space; copy anything you want to keep.
 
 ## Summary
 
@@ -212,3 +212,63 @@ Gates after the fixes: `npm run typecheck` exit 0; `npm test` gives tests 17, pa
 - Quest Browser behaviour with storage blocked or private browsing. The emulator's XR runtime itself needs storage.
 - Comfort of the seated layout over a 10-minute session.
 - Behaviour with no internet: hand and controller models are fetched from a CDN; offline they are not drawn (input still works, as shown in the emulator).
+
+## T-07b: draw calls and three polish fixes (2026-11-15)
+
+Run 2026-11-15 by the T-07b agent. **Desktop emulator data only** (IWER, Quest 3 profile unless noted, MacBook). Nothing here was measured on a headset. T-07's numbers above are left as they were.
+
+### What changed
+
+| File | Change |
+|---|---|
+| `src/play/play-system.ts` | Blocks are one `InstancedMesh` per N (packed: instance k shows one filled cell; a removed slot takes the last instance). The edge lines are baked into the block material as a 128 px border texture, so all blocks are **one draw per eye** (was two per block). Taps resolve `instanceId` from the `RayInteractable` click event; the face is still read from the hit point in the box frame. Fixed bounding sphere (whole box). The pop-in scales the instance matrix. The invisible floor keeps `visible = true` (so rays still hit it) but its material has `visible = false`, so it is never drawn. New hint ghost: cyan body (`#3fe6ff`, opacity 0.35–0.75) plus a white wire outline, both `depthTest: false`, `renderOrder` 20/21, with a 6 % size pulse. New dev check `debugBlockSync()`, also counted by `debugShadowCheck`. |
+| `src/play/walls.ts` | Each kind of wall mark (thin frames, thick frames, fills, wrong fills, crosses) is one merged mesh per wall whose index buffer and draw range are rewritten on change. Border and tick are one mesh (thin and thick variants). `forceSinglePass` on the overlay materials (three otherwise draws transparent double-sided materials twice). `overlay-top/front/side` groups and their transforms are unchanged. |
+| `src/feedback/feedback-system.ts` | Glow ring material `forceSinglePass: true` (+1 line). |
+| `src/tutorial/tutorial-system.ts` | Halo: white for add steps (was the ghost's old cream), `depthTest: false`, `renderOrder` 19, so it frames the ghost over the wall panes (+4 lines). |
+| `src/flow/flow-system.ts` | **Outside the brief's list** (the copy lives here): daily line `Streak: N days. Back tomorrow!` → `N-day streak. See you!`; `Already done today: m:ss` → `Already solved: m:ss` (2 lines). |
+
+### Draw calls per stereo frame (`renderer.info.render.calls` after one `render()`)
+
+Method: in-page script in an `immersive-vr` session, hand input, the right hand ray aimed at the box. States driven through flow and `change()` (the same path a tap takes). "Before" was measured on the T-07 code at the start of this run, "after" on the final code. Hand models were loaded (visible) in both runs.
+
+| State | Before | After | Triangles after |
+|---|---|---|---|
+| Home | 68 | 68 | 28,436 |
+| Empty N = 4 daily | 132 | 72 | 25,740 |
+| Daily, 9 blocks | 266–270 | 92–94 | 26,204 |
+| Solve animation (1.1 s after the last block) | 244–270 | 70–92 | 26,212 |
+| Result card up | 244 | 70 | 22,260 |
+| N = 4, 40 blocks | 610 | **94** | 27,208 |
+| N = 4, 40 blocks, mid-turn | 610 | **94** | 27,208 |
+
+Where the 94 goes (40 blocks, per stereo frame): glass-box panes and grids 24, wall overlays 24, control bar (UIKit) 24, hand models 8, ray visuals 8, readout 4, blocks 2. The hint ghost adds 4 while it shows (tutorial). **PASS: under 100 in the largest case, with 6 to spare.** Further cuts available but not made: `forceSinglePass` on the glass-box pane and grid materials (−12, file not owned by T-07b); merging fills, wrong fills and crosses into one vertex-coloured layer per wall (about −12, more code).
+
+### Frame time (same sampler as §4: `world.update` and `renderer.render` wrapped; 6 s, or 2.5 s for the solve)
+
+4× throttle: CDP `Emulation.setCPUThrottlingRate {rate: 4}` held for the whole sampling script (a calibration loop ran 4.1 ms normally, 13.6 ms throttled). Note: T-07's harness set the rate in a separate CDP session; whether it stayed applied there was not checked.
+
+| Case | Frame interval mean / p95 (ms) | update mean (ms) | render mean / p95 (ms) | Draw calls |
+|---|---|---|---|---|
+| N = 4, 40 blocks, Turn every 300 ms | 16.66 / 18.4 | 1.07 | 1.14 / 1.6 | 94 |
+| Same, 4× CPU throttle | 16.80 / 19.5 | 2.96 | 3.50 / 5.8 | 94 |
+| N = 4 daily, solve moment (10 blocks) | 16.67 / 17.8 | 0.79 | 1.04 / 1.4 | 88–94 |
+| Same, 4× CPU throttle | 16.64 / 18.3 | 2.36 | 2.75 / 3.6 | 88–94 |
+
+Update + render CPU for the 40-block turning case: 2.2 ms (T-07: 5.2 ms), 6.5 ms at 4× (T-07: 18.4 ms). The frame interval is capped by the laptop's 60 Hz display.
+
+### Regression checks (all real hand ray-and-pinch taps unless noted)
+
+- Tutorial from cleared storage, 4 taps: ghost (step 1), remove block 19 (step 2), Turn right, ghost (step 3), then Home with `tutorialDone: true`. Screens `t07b/01`–`05`.
+- Practice (N = 3, cells 1, 4, 13, 22): floor tap → 1; top face of 1 → 4; Turn right twice; −x face of 4 → 3 (not the mirrored 5), a wrong block with a red-tinted square and cross (`06`); Remove, tap 3 → gone; Undo → back; Remove 3 again; Add; Turn right twice; +z face of 4 → 13; +z face of 13 → 22 → solved, result card "1 more solve to level 2" (`07`, `08`). `debugBlockSync()` 0.
+- Daily N = 4: blocks placed with the dev helpers, solved at 9 / 10, result card "1-day streak. See you!" on one line (`09`).
+- Rejected taps: up from the top layer and onto a filled floor square both emit `tap-rejected` (page script).
+- Pop-in: instance scale 0.68 at 10 ms, 0.91 at 60 ms, 1.0 at 200 ms.
+- 200-random-tap shadow check (now also checks the instances): N = 3 `200 taps (77 adds, 73 removes, 50 rejected), 0 mismatches`; N = 4 `200 taps (79 adds, 71 removes, 50 rejected), 0 mismatches`; N = 4 high contrast `0 mismatches`. `debugBlockSync()` 0 after each.
+- N = 3 ↔ N = 4, 40 switches with taps: `renderer.info.memory` geometries 101, textures 14 before and after (no leak; kits are built once per N and reused).
+- Glasses (`metaVRGlasses`, gaze granted): gaze + pinch started Practice, floor add, top-face add, Remove button, removed a block, Add button, Turn right, ghost tap. Ghost after the turn: `10-glasses-ghost-turned.png`. Switched back to `metaQuest3`.
+- Result line widths (UIKit `size`, 414 px available at 34 px text; one line = 40.8 px tall): "365-day streak. See you!", "Already solved: 59:59", "Level up! Now level 8", "1 more solve to level 8", "Top level reached" all one line. The old "Streak: 1 day. Back tomorrow!" was 81.6 px (two lines).
+- Gates: `npm run typecheck` exit 0; `npm test` tests 17, pass 17, fail 0; `npx vite build --outDir <scratch>/t07b/dist` `✓ built in 4.28s`. Console after the final reload and XR session: 0 errors; warnings are THREE.Clock deprecation and the two known gaze warnings on Quest 3.
+
+Screenshots: `scratchpad/t07b/`.
+
+Known issues 1, 3 and 4 above are fixed by this section. Issue 2 (CDN hand models) and 5 (audio) are unchanged.

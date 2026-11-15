@@ -4,17 +4,22 @@
 import {
   BoxGeometry,
   createSystem,
-  EdgesGeometry,
+  DataTexture,
+  DoubleSide,
+  DynamicDrawUsage,
   type Entity,
   Group,
-  LineBasicMaterial,
-  LineSegments,
+  InstancedMesh,
+  LinearMipmapLinearFilter,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   type Object3D,
   PlaneGeometry,
   RayInteractable,
+  Sphere,
+  SRGBColorSpace,
   type UIKit,
   type UIKitMLAsset,
   Vector3,
@@ -52,24 +57,63 @@ const START_GUARD_MS = 300;
 /** Resting yaw about the box's local Y, so the side wall faces the seat too (DESIGN.md §4). */
 export const REST_YAW = (-30 * Math.PI) / 180;
 
-class NoRayLines extends LineSegments {
-  override raycast(): void {}
+/**
+ * A square texture with a border band: every face of a box gets the same
+ * frame, so the block edges are part of the block's one draw call (T-07b).
+ * `inner`/`border` are RGBA bytes; the texture is sRGB.
+ */
+function frameTexture(inner: number[], border: number[], size: number, band: number): DataTexture {
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) {
+      const edge = x < band || y < band || x >= size - band || y >= size - band;
+      data.set(edge ? border : inner, (y * size + x) * 4);
+    }
+  const tex = new DataTexture(data, size, size);
+  tex.colorSpace = SRGBColorSpace;
+  tex.generateMipmaps = true;
+  tex.minFilter = LinearMipmapLinearFilter;
+  tex.needsUpdate = true;
+  return tex;
 }
 
-const blockMat = new MeshStandardMaterial({ color: '#e9a25f', roughness: 0.55, metalness: 0 });
-const edgeMat = new LineBasicMaterial({ color: '#5a3416' });
-const ghostMat = new MeshBasicMaterial({
-  color: '#ffd29a',
-  transparent: true,
-  opacity: 0.4,
-  depthWrite: false,
+// Block body #e9a25f with its #5a3416 edge lines baked in.
+const blockMat = new MeshStandardMaterial({
+  map: frameTexture([0xe9, 0xa2, 0x5f, 255], [0x5a, 0x34, 0x16, 255], 128, 3),
+  roughness: 0.55,
+  metalness: 0,
 });
+// Hint ghost (T-07b): a bright cyan body and a white wire outline, both drawn
+// over the walls and the build so it reads at every turn. Colour is not the
+// only signal: the outline and a pulse in size and opacity carry it too.
+const ghostMat = new MeshBasicMaterial({
+  color: '#3fe6ff',
+  transparent: true,
+  opacity: 0.5,
+  depthWrite: false,
+  depthTest: false,
+  toneMapped: false,
+});
+const ghostLineMat = new MeshBasicMaterial({
+  map: frameTexture([255, 255, 255, 0], [255, 255, 255, 255], 64, 5),
+  transparent: true,
+  side: DoubleSide,
+  forceSinglePass: true, // depth test is off, so a back-face pass adds nothing
+  depthWrite: false,
+  depthTest: false,
+  toneMapped: false,
+});
+const GHOST_ORDER = 20;
 // Invisible but hittable floor (Add mode only).
 const floorMat = new MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 floorMat.colorWrite = false;
+// T-07b: never drawn (saves a draw call per eye) but still ray-hit: the mesh
+// itself stays visible, and Mesh.raycast ignores material.visible.
+floorMat.visible = false;
 
 interface SizeKit {
-  blocks: Mesh[]; // one per cell index, attached only while filled
+  /** One instance per filled cell, packed: instance k shows cell `slotCell[k]`. */
+  blocks: InstancedMesh;
   floor: Mesh;
   ghost: GhostMesh;
   overlays: Overlays;
@@ -99,6 +143,10 @@ export class PlaySystem extends createSystem({}) {
   private turnTo = 0;
   private turnStart = -1;
   private popStart = new Float64Array(64).fill(-1);
+  private slotCell = new Int16Array(64).fill(-1);
+  private cellSlot = new Int16Array(64).fill(-1);
+  private m4 = new Matrix4();
+  private m4b = new Matrix4();
   private clearArmedAt = -1;
   private hint = -1;
   private highContrast = false;
@@ -118,8 +166,8 @@ export class PlaySystem extends createSystem({}) {
     const rootEntity = this.world.createTransformEntity(this.buildRoot, boxEntity);
     rootEntity.addComponent(RayInteractable);
 
-    const onClick = (e: { object: Object3D; point: Vector3 }): void =>
-      this.onBuildTap(e.object, e.point);
+    const onClick = (e: { object: Object3D; point: Vector3; instanceId?: number }): void =>
+      this.onBuildTap(e.object, e.point, e.instanceId);
     this.buildRoot.addEventListener('click' as never, onClick as never);
     this.cleanupFuncs.push(() =>
       this.buildRoot.removeEventListener('click' as never, onClick as never),
@@ -169,13 +217,18 @@ export class PlaySystem extends createSystem({}) {
     if (this.kit !== null) this.detachKit(this.kit);
     this.kit = this.kitFor(this.n);
     this.box.add(this.kit.overlays.root);
-    this.buildRoot.add(this.kit.ghost);
+    this.buildRoot.add(this.kit.ghost, this.kit.blocks);
     setOverlayContrast(this.kit.overlays, this.highContrast);
 
     const cells = this.n ** 3;
     this.shape = new Uint8Array(cells);
     if (start !== undefined) this.shape.set(start.subarray(0, cells));
-    for (let i = 0; i < cells; i++) this.setBlockAttached(i, this.shape[i] === 1, false);
+    this.kit.blocks.count = 0;
+    this.kit.blocks.visible = false;
+    this.slotCell.fill(-1);
+    this.cellSlot.fill(-1);
+    this.popStart.fill(-1);
+    for (let i = 0; i < cells; i++) if (this.shape[i] === 1) this.setBlockAttached(i, true, false);
     this.history = [];
     this.mode = mode;
     this.refreshMode();
@@ -240,7 +293,7 @@ export class PlaySystem extends createSystem({}) {
     return this.puzzle === null || this.solved || this.turnStart >= 0;
   }
 
-  private onBuildTap(object: Object3D, worldPoint: Vector3): void {
+  private onBuildTap(object: Object3D, worldPoint: Vector3, instanceId?: number): void {
     if (this.locked || this.kit === null || performance.now() - this.startMs < START_GUARD_MS) return;
     const local = this.box.worldToLocal(this.tmp.copy(worldPoint));
     const n = this.n;
@@ -258,8 +311,9 @@ export class PlaySystem extends createSystem({}) {
       if (i >= 0 && this.mode === 'add') this.tryAdd(i % n, Math.floor(i / n) % n, Math.floor(i / (n * n)));
       return;
     }
-    const cell = object.userData.cell as number | undefined;
-    if (cell === undefined) return;
+    if (object !== this.kit.blocks || instanceId === undefined || instanceId >= this.kit.blocks.count) return;
+    const cell = this.slotCell[instanceId];
+    if (cell < 0) return;
     // Hit face = the largest component of (hit point - block centre), in the
     // box's own frame, so turning never mirrors placement.
     const c = cellCenter(n, cell % n, Math.floor(cell / n) % n, Math.floor(cell / (n * n)), this.tmp2);
@@ -424,16 +478,19 @@ export class PlaySystem extends createSystem({}) {
       if (t >= 1) this.turnStart = -1;
     }
 
-    const blocks = this.kit.blocks;
-    for (let i = 0; i < blocks.length; i++) {
+    for (let i = 0; i < this.shape.length; i++) {
       const s = this.popStart[i];
       if (s < 0) continue;
       const t = Math.min(1, (now - s) / POP_MS);
-      blocks[i].scale.setScalar(0.6 + 0.4 * (1 - (1 - t) * (1 - t)));
+      this.writeBlock(i, 0.6 + 0.4 * (1 - (1 - t) * (1 - t)));
       if (t >= 1) this.popStart[i] = -1;
     }
 
-    if (this.hint >= 0) ghostMat.opacity = 0.3 + 0.25 * Math.sin(now / 160);
+    if (this.hint >= 0) {
+      const p = Math.sin(now / 160);
+      ghostMat.opacity = 0.55 + 0.2 * p;
+      this.kit.ghost.scale.setScalar(1 + 0.06 * p);
+    }
 
     if (this.clearArmedAt >= 0 && now - this.clearArmedAt > CLEAR_CONFIRM_MS) {
       this.clearArmedAt = -1;
@@ -463,16 +520,46 @@ export class PlaySystem extends createSystem({}) {
     return c;
   }
 
+  /** Show or hide cell i's block instance. Instances stay packed: a removed slot takes the last one. */
   private setBlockAttached(i: number, on: boolean, pop: boolean): void {
-    const mesh = this.kit!.blocks[i];
+    const blocks = this.kit!.blocks;
     if (on) {
-      this.buildRoot.add(mesh);
-      mesh.scale.setScalar(pop ? 0.6 : 1);
+      if (this.cellSlot[i] < 0) {
+        const k = blocks.count++;
+        this.slotCell[k] = i;
+        this.cellSlot[i] = k;
+      }
+      this.writeBlock(i, pop ? 0.6 : 1);
       this.popStart[i] = pop ? performance.now() : -1;
+      blocks.visible = true;
     } else {
-      this.buildRoot.remove(mesh);
       this.popStart[i] = -1;
+      const k = this.cellSlot[i];
+      if (k < 0) return;
+      const last = --blocks.count;
+      if (k !== last) {
+        const moved = this.slotCell[last];
+        blocks.getMatrixAt(last, this.m4b);
+        blocks.setMatrixAt(k, this.m4b);
+        this.slotCell[k] = moved;
+        this.cellSlot[moved] = k;
+      }
+      this.slotCell[last] = -1;
+      this.cellSlot[i] = -1;
+      blocks.instanceMatrix.needsUpdate = true;
+      blocks.visible = blocks.count > 0; // an empty instanced draw is still a draw call
     }
+  }
+
+  /** Write cell i's instance matrix at the given scale. */
+  private writeBlock(i: number, scale: number): void {
+    const k = this.cellSlot[i];
+    if (k < 0) return;
+    const n = this.n;
+    cellCenter(n, i % n, Math.floor(i / n) % n, Math.floor(i / (n * n)), this.tmp2);
+    this.m4.makeScale(scale, scale, scale).setPosition(this.tmp2);
+    this.kit!.blocks.setMatrixAt(k, this.m4);
+    this.kit!.blocks.instanceMatrix.needsUpdate = true;
   }
 
   private refreshMode(): void {
@@ -506,26 +593,19 @@ export class PlaySystem extends createSystem({}) {
     kit.overlays.root.removeFromParent();
     kit.ghost.removeFromParent();
     kit.floor.removeFromParent();
-    for (const b of kit.blocks) b.removeFromParent();
+    kit.blocks.removeFromParent();
   }
 
   private kitFor(n: BoxSize): SizeKit {
     let kit = this.kits.get(n);
     if (kit !== undefined) return kit;
     const b = BLOCK_SIZE[n];
-    const cube = new BoxGeometry(b, b, b);
-    const edges = new EdgesGeometry(cube);
-    const blocks: Mesh[] = [];
-    const p = new Vector3();
-    for (let i = 0; i < n * n * n; i++) {
-      const m = new Mesh(cube, blockMat);
-      m.name = `block-${i}`;
-      m.userData.cell = i;
-      cellCenter(n, i % n, Math.floor(i / n) % n, Math.floor(i / (n * n)), p);
-      m.position.copy(p);
-      m.add(new NoRayLines(edges, edgeMat));
-      blocks.push(m);
-    }
+    const blocks = new InstancedMesh(new BoxGeometry(b, b, b), blockMat, n * n * n);
+    blocks.name = 'play-blocks';
+    blocks.instanceMatrix.setUsage(DynamicDrawUsage);
+    blocks.count = 0;
+    // Fixed bounds (the whole box), so culling and ray tests never need recomputing.
+    blocks.boundingSphere = new Sphere(new Vector3(), (Math.sqrt(3) * n * b) / 2);
     const floorGeo = new PlaneGeometry(n * b, n * b);
     floorGeo.rotateX(-Math.PI / 2);
     const floor = new Mesh(floorGeo, floorMat);
@@ -534,6 +614,11 @@ export class PlaySystem extends createSystem({}) {
     const ghost = new GhostMesh(new BoxGeometry(b * 0.98, b * 0.98, b * 0.98), ghostMat);
     ghost.name = 'play-hint';
     ghost.visible = false;
+    ghost.renderOrder = GHOST_ORDER;
+    const outline = new GhostMesh(new BoxGeometry(b * 1.02, b * 1.02, b * 1.02), ghostLineMat);
+    outline.name = 'play-hint-outline';
+    outline.renderOrder = GHOST_ORDER + 1;
+    ghost.add(outline);
     kit = { blocks, floor, ghost, overlays: createOverlays(n) };
     this.kits.set(n, kit);
     return kit;
@@ -561,6 +646,27 @@ export class PlaySystem extends createSystem({}) {
       cells,
       matched: { ...this.matched },
     };
+  }
+
+  /** Filled cells whose block instance is missing, misplaced or extra (0 when in sync). */
+  debugBlockSync(): number {
+    if (this.kit === null) return 0;
+    const blocks = this.kit.blocks;
+    let bad = Math.abs(blocks.count - this.blockCount());
+    if (blocks.visible !== blocks.count > 0) bad++;
+    const n = this.n;
+    for (let k = 0; k < blocks.count; k++) {
+      const i = this.slotCell[k];
+      if (i < 0 || this.shape[i] !== 1 || this.cellSlot[i] !== k) {
+        bad++;
+        continue;
+      }
+      blocks.getMatrixAt(k, this.m4b);
+      cellCenter(n, i % n, Math.floor(i / n) % n, Math.floor(i / (n * n)), this.tmp2);
+      this.tmp.setFromMatrixPosition(this.m4b);
+      if (this.tmp.distanceTo(this.tmp2) > 1e-6) bad++;
+    }
+    return bad;
   }
 
   /** 200 random add/remove taps; compares drawn walls with project(build) after each. */
@@ -599,6 +705,7 @@ export class PlaySystem extends createSystem({}) {
       else if (after < before) removes++;
       else rejects++;
       mismatches += countMismatches(this.kit.overlays, this.shape, this.puzzle.target, this.matched);
+      mismatches += this.debugBlockSync();
       checks++;
     }
     this.mode = 'add';

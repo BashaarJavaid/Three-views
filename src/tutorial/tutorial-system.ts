@@ -33,13 +33,14 @@ class HaloMesh extends Mesh {
 }
 
 const haloMat = new MeshBasicMaterial({
-  color: '#ffd29a',
+  color: '#ffffff',
   transparent: true,
   opacity: 0,
   depthWrite: false,
+  depthTest: false, // T-07b: over the wall panes, like play's ghost; drawn just before it
   toneMapped: false,
 });
-const HALO_ADD = '#ffd29a';
+const HALO_ADD = '#ffffff'; // T-07b: white, so it separates from the cyan ghost
 const HALO_REMOVE = '#ff3b30';
 
 // Turn-button pulse: two prebuilt property sets, toggled (no allocation per frame).
@@ -88,6 +89,7 @@ export class TutorialSystem extends createSystem({}) {
     this.halo = new HaloMesh(new BoxGeometry(1, 1, 1), haloMat);
     this.halo.name = 'tutorial-halo';
     this.halo.visible = false;
+    this.halo.renderOrder = 19; // play's ghost is 20
     this.box.add(this.halo);
 
     const skip = panel.requireElementById('btn-skip');

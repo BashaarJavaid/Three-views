@@ -82,6 +82,7 @@ export class FeedbackSystem extends createSystem({}) {
           transparent: true,
           opacity: 0,
           side: DoubleSide,
+          forceSinglePass: true, // T-07b: a flat ring needs one pass, not two
           depthWrite: false,
           blending: AdditiveBlending,
         }),

@@ -156,8 +156,8 @@ export class FlowSystem extends createSystem({}) {
       const streak = currentStreak(this.p, s.key);
       change =
         this.p === before
-          ? `Already done today: ${formatTime(this.p.dailyTimes[s.key] ?? seconds)}`
-          : `Streak: ${streak} ${streak === 1 ? 'day' : 'days'}. Back tomorrow!`;
+          ? `Already solved: ${formatTime(this.p.dailyTimes[s.key] ?? seconds)}`
+          : `${streak}-day streak. See you!`; // T-07b: one line on the card up to a 3-digit streak
     } else {
       const level = this.p.level;
       this.p = recordPractice(this.p, seconds);
