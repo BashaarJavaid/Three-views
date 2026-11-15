@@ -48,4 +48,4 @@ No accounts, no sign-in, no analytics and no server of its own. Your progress (s
 
 ## Licence
 
-Copyright 2026 BashaarJavaid. Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
+Copyright 2026 Malik Bashaar Javaid. Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
