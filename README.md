@@ -2,7 +2,7 @@
 
 Three Views is a daily spatial puzzle for VR, played with your hands. The top, front and side outlines of a hidden shape glow on three walls of a glass box. You build a shape from blocks inside the box until its three shadows match the three outlines. Any shape that casts the right shadows wins.
 
-**Play:** https://bashaarjavaid.github.io/Three-views/ (live after the first deploy)
+**Play:** https://bashaarjavaid.github.io/Three-views/
 
 ## How to play
 
