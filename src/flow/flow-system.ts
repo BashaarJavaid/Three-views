@@ -101,7 +101,7 @@ export class FlowSystem extends createSystem({}) {
     const today = dateKey(new Date());
     const time = this.p.dailyTimes[today];
     const streak = currentStreak(this.p, today);
-    this.text(this.home, 'label-daily', time === undefined ? 'Daily puzzle' : `Daily: done ${formatTime(time)}`);
+    this.text(this.home, 'label-daily', time === undefined ? 'Daily warm-up' : `Daily: done ${formatTime(time)}`);
     this.text(this.home, 'label-practice', `Practice: level ${this.p.level}`);
     this.text(this.home, 'streak-count', String(streak));
     this.text(this.home, 'label-sound', this.p.sound ? 'Sound on' : 'Sound off');

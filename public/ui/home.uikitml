@@ -109,7 +109,7 @@
   </div>
   <Button id="btn-daily" class="main-btn">
     <ButtonIcon><CalendarDays></CalendarDays></ButtonIcon>
-    <ButtonLabel id="label-daily" class="main-label">Daily puzzle</ButtonLabel>
+    <ButtonLabel id="label-daily" class="main-label">Daily warm-up</ButtonLabel>
   </Button>
   <Button id="btn-practice" class="main-btn">
     <ButtonIcon><Dumbbell></Dumbbell></ButtonIcon>

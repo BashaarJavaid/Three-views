@@ -1,6 +1,6 @@
 # Three Views
 
-Three Views is a daily spatial puzzle for VR, played with your hands. The top, front and side outlines of a hidden shape glow on three walls of a glass box. You build a shape from blocks inside the box until its three shadows match the three outlines. Any shape that casts the right shadows wins.
+Three Views is a short daily warm-up for spatial thinking, the skill you use to read drawings and build things. You play it in VR with your hands. The top, front and side outlines of a hidden shape glow on three walls of a glass box. You build a shape from blocks inside the box until its three shadows match the three outlines. Any shape that casts the right shadows wins.
 
 **Play:** https://bashaarjavaid.github.io/Three-views/
 
@@ -11,9 +11,9 @@ Three Views is a daily spatial puzzle for VR, played with your hands. The top, f
 - In **Add** mode, tap a floor square or the face of a block to place a block there. In **Remove** mode, tap a block to take it away.
 - **Turn left** and **Turn right** rotate the box by a quarter turn. **Undo** steps back one move. **Clear** empties the box (tap it twice to confirm).
 - When all three shadows match their outlines, the puzzle is solved.
-- One new **daily puzzle** each day. Solving it on consecutive days builds your **streak**.
+- One new **daily warm-up** each day. Solving it on consecutive days builds your **streak**.
 - **Practice** has eight levels. Two solves at a level move you up one.
-- The first time you play, three short teaching puzzles show you how it works.
+- The first time you play, three short lessons show you how it works.
 
 ## Devices
 
