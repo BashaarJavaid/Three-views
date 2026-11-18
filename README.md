@@ -6,11 +6,11 @@ Three Views is a short daily warm-up for spatial thinking, the skill you use to 
 
 ## How to play
 
-- Play seated. Every target is within arm's reach.
+- Play seated. You point and pinch from your seat; nothing needs you to lean or move.
 - Point and pinch (or click with a mouse) to tap. Every action is a tap: there is nothing to hold or drag.
 - In **Add** mode, tap a floor square or the face of a block to place a block there. In **Remove** mode, tap a block to take it away.
 - **Turn left** and **Turn right** rotate the box by a quarter turn. **Undo** steps back one move. **Clear** empties the box (tap it twice to confirm).
-- When all three shadows match their outlines, the puzzle is solved.
+- When all three shadows match their outlines, the shape is solved.
 - One new **daily warm-up** each day. Solving it on consecutive days builds your **streak**.
 - **Practice** has eight levels. Two solves at a level move you up one.
 - The first time you play, three short lessons show you how it works.
@@ -40,11 +40,11 @@ npm run build      # production build into dist/
 
 ## Privacy
 
-No accounts, no sign-in, no analytics and no server of its own. Your progress (streak, level, settings) is stored only in your browser's `localStorage`. The game still works if storage is blocked; progress is just not kept.
+No accounts, no sign-in, no analytics and no server of its own. Your progress (streak, level, settings) is stored only in your browser's `localStorage`. The app still works if storage is blocked; progress is just not kept.
 
 ## Built with
 
-[Immersive Web SDK](https://iwsdk.dev) (IWSDK), TypeScript and Vite. The shapes are generated in code and the sounds are synthesized; there is no third-party art or audio.
+[Immersive Web SDK](https://iwsdk.dev) (IWSDK), TypeScript and Vite. The shapes are generated in code and the sounds are synthesized. The only outside assets are the SDK's hand and controller models, loaded from a public CDN when VR starts, and the UI kit's icons and font, all open-licensed.
 
 ## Licence
 
